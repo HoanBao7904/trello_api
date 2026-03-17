@@ -1,36 +1,65 @@
-/**
- * Updated by trungquandev.com's author on August 17 2023
- * YouTube: https://youtube.com/@trungquandev
- * "A bit of fragrance clings to the hand that gives flowers!"
- */
 
-import express from "express";
-import { mapOrder } from "~/utils/sorts.js";
+import express from 'express'
+import { CONECT_DB, GET_DB, CLOSE_DB } from '~/config/mongodb'
+import exitHook from 'async-exit-hook'
 
-const app = express();
+import { env } from '~/config/environment'
+const START_SERVER = () => {
 
-const hostname = "localhost";
-const port = 8017;
+  const app = express()
 
-app.get("/", (req, res) => {
+  // const hostname = 'localhost'
+  // const port = 8017
+
+  app.get('/', async (req, res) => {
   // Test Absolute import mapOrder
-  console.log(
-    mapOrder(
-      [
-        { id: "id-1", name: "One" },
-        { id: "id-2", name: "Two" },
-        { id: "id-3", name: "Three" },
-        { id: "id-4", name: "Four" },
-        { id: "id-5", name: "Five" },
-      ],
-      ["id-5", "id-4", "id-2", "id-3", "id-1"],
-      "id",
-    ),
-  );
-  res.end("<h1>Hello World!</h1><hr>");
-});
 
-app.listen(port, hostname, () => {
+    console.log(process.env)
+    // process.exit(0)
+    res.end('<h1>Hello World!</h1><hr>')
+  })
+
+  app.listen(env.APP_PORT, env.APP_HOST, () => {
   // eslint-disable-next-line no-console
-  console.log(`Hello Trung Quan Dev, I am running at ${hostname}:${port}/`);
-});
+    console.log(`3 Hello ${env.AUTHOR}, I am running at ${ env.APP_HOST }:${ env.APP_PORT }/`)
+  })
+  exitHook((done) => {
+    console.log(' 4 Exit app')
+    CLOSE_DB()
+    console.log(' 5 Exit app')
+    done()
+  })
+  // exitHook((done) => {
+  //   console.log('4 Exit app')
+  //   CLOSE_DB().then(() => {
+  //     console.log('5 Exit app') // chờ CLOSE_DB xong mới log
+  //     done() // rồi mới báo xong
+  //   })
+  // })
+}
+//chỉ kết nối db thành công thì mới start server backend
+//sytax là "IIFE" gọi fun ngay lập tức đọc thêm từ docs
+(async () => {
+  try {
+    console.log('1 Connecting to MongoDB Clould Atlas...')
+    await CONECT_DB()
+    console.log('2 Connected to MongoDB Clould Atlas!')
+    ////khởi động server backend sau khi connect databasse thành công
+    START_SERVER()
+
+  } catch (error) {
+    console.error(error)
+    process.exit(0)
+  }
+})()
+// console.log('1 Connecting to MongoDB Clould Atlas...')
+// CONECT_DB()
+//   .then(() => console.log('2 Connected to MongoDB Clould Atlas!'))
+//   .then(() => START_SERVER())
+//   .catch((error) => {
+//     console.error(error)
+//     process.exit(0)
+//   })
+
+
+// START_SERVER()
